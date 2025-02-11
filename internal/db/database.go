@@ -1,12 +1,14 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"memo-board/internal/models"
 
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -42,6 +44,37 @@ func InitDB() error {
 	// 자동 마이그레이션
 	if err := dbConn.AutoMigrate(&models.User{}, &models.Post{}); err != nil {
 		return fmt.Errorf("auto migrate error: %w", err)
+	}
+
+	// 관리 계정 생성 (환경 변수에서 ADMIN_ID, ADMIN_PW 읽기)
+	adminID := os.Getenv("ADMIN_ID")
+	adminPW := os.Getenv("ADMIN_PW")
+	if adminID != "" && adminPW != "" {
+		var admin models.User
+		// admin 계정이 존재하는지 확인
+		if err := dbConn.Where("username = ?", adminID).First(&admin).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// 비밀번호 해싱
+				hashed, err := bcrypt.GenerateFromPassword([]byte(adminPW), 14)
+				if err != nil {
+					return fmt.Errorf("failed to hash admin password: %w", err)
+				}
+				// admin 계정 생성, 이메일은 기본값으로 지정
+				admin = models.User{
+					Username:   adminID,
+					Password:   string(hashed),
+					Email:      adminID + "@admin.com",
+					Role:       "admin",
+					IsApproved: true,
+				}
+				if err := dbConn.Create(&admin).Error; err != nil {
+					return fmt.Errorf("failed to create admin user: %w", err)
+				}
+				fmt.Println("Admin account created successfully")
+			} else {
+				return fmt.Errorf("failed to query admin user: %w", err)
+			}
+		}
 	}
 
 	DB = dbConn
