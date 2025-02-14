@@ -5,22 +5,22 @@ import (
 	"memo-board/internal/db"
 	"memo-board/internal/router"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// (선택) .env 파일 로드 (로컬 개발 시)
-	// err := godotenv.Load()
-	// if err != nil {
-	//     log.Println("Warning: No .env file found")
-	// }
+	// .env 파일 로드 (로컬 개발 시)
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: No .env file found")
+	}
 
 	// DB 초기화
-	err := db.InitDB()
-	if err != nil {
+	if err := db.InitDB(); err != nil {
 		log.Fatalf("Failed to init DB: %v\n", err)
 	}
 
-	// 라우터 설정
+	// 라우터 설정 (내부 router 패키지에서 admin 관련 엔드포인트 포함)
 	r := router.SetupRouter()
 
 	// 포트 설정

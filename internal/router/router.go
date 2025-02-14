@@ -11,6 +11,9 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
+	// HTML 템플릿 로드
+	r.LoadHTMLGlob("templates/*")
+
 	// CORS 설정 (개발 시)
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
@@ -34,6 +37,15 @@ func SetupRouter() *gin.Engine {
 		auth.POST("/", controllers.CreatePost)
 		auth.PUT("/:id", controllers.UpdatePost)
 		auth.DELETE("/:id", controllers.DeletePost)
+	}
+
+	// Admin 관련 라우트 그룹
+	admin := r.Group("/admin")
+	{
+		admin.GET("/", controllers.AdminDashboard)
+		admin.GET("/users", controllers.AdminUserList)
+		admin.GET("/users/:id", controllers.AdminUserDetail)
+		admin.POST("/users/:id", controllers.AdminUserUpdate)
 	}
 
 	return r

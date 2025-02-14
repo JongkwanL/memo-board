@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - 유저 관리</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { display: flex; }
+        .sidebar { width: 200px; border-right: 1px solid #ccc; padding: 10px; }
+        .content { flex: 1; padding: 10px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 좌측 네비게이션 바 -->
+    <div class="sidebar">
+        <h3>Admin Panel</h3>
+        <ul>
+            <li><a href="/admin/users">유저 관리</a></li>
+            <!-- 추가 메뉴 항목은 여기 추가 -->
+        </ul>
+    </div>
+    <!-- 메인 컨텐츠 -->
+    <div class="content">
+        <h2>유저 리스트</h2>
+        <!-- 필터링 폼 -->
+        <form method="GET" action="/admin/users">
+            이름: <input type="text" name="username" value="{{.UsernameFilter}}">
+            Role: <input type="text" name="role" value="{{.RoleFilter}}">
+            Approved:
+            <select name="isapproved">
+                <option value="">전체</option>
+                <option value="true" {{if eq .IsApprovedFilter "true"}}selected{{end}}>승인됨</option>
+                <option value="false" {{if eq .IsApprovedFilter "false"}}selected{{end}}>미승인</option>
+            </select>
+            <button type="submit">검색</button>
+        </form>
+        <br>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Approved</th>
+                <th>Created At</th>
+            </tr>
+            {{range .Users}}
+            <tr>
+                <td><a href="/admin/users/{{.ID}}">{{.ID}}</a></td>
+                <td>{{.Username}}</td>
+                <td>{{.Email}}</td>
+                <td>{{.Role}}</td>
+                <td>{{.IsApproved}}</td>
+                <td>{{.CreatedAt}}</td>
+            </tr>
+            {{end}}
+        </table>
+    </div>
+</div>
+</body>
+</html>
