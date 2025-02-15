@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// POST /posts (JWT 필요)
+// CreatePost POST /posts (JWT 필요)
 func CreatePost(c *gin.Context) {
 	userIDany, _ := c.Get("user_id") // 미들웨어서 set
 	userID := userIDany.(uint)
@@ -35,7 +35,7 @@ func CreatePost(c *gin.Context) {
 	c.JSON(http.StatusOK, post)
 }
 
-// GET /posts/:id
+// GetPost GET /posts/:id
 func GetPost(c *gin.Context) {
 	idParam := c.Param("id")
 	var post models.Post
@@ -49,7 +49,7 @@ func GetPost(c *gin.Context) {
 	c.JSON(http.StatusOK, post)
 }
 
-// GET /posts (목록)
+// ListPosts GET /posts (목록)
 func ListPosts(c *gin.Context) {
 	pageStr := c.Query("page")
 	limitStr := c.Query("limit")
@@ -70,7 +70,7 @@ func ListPosts(c *gin.Context) {
 	c.JSON(http.StatusOK, posts)
 }
 
-// PUT /posts/:id (JWT 필요, 작성자만)
+// UpdatePost PUT /posts/:id (JWT 필요, 작성자만)
 func UpdatePost(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	idParam := c.Param("id")
@@ -102,7 +102,7 @@ func UpdatePost(c *gin.Context) {
 	c.JSON(http.StatusOK, post)
 }
 
-// DELETE /posts/:id (JWT 필요, 작성자만)
+// DeletePost DELETE /posts/:id (JWT 필요, 작성자만)
 func DeletePost(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	idParam := c.Param("id")

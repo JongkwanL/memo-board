@@ -7,6 +7,13 @@ import (
 	"net/http"
 )
 
+// AdminDashboard renders the admin dashboard page.
+func AdminDashboard(c *gin.Context) {
+	c.HTML(http.StatusOK, "admin_dashboard.html", gin.H{
+		"Message": "Welcome to Admin Dashboard",
+	})
+}
+
 // AdminUserList handles GET /admin/users
 func AdminUserList(c *gin.Context) {
 	usernameFilter := c.Query("username")
@@ -72,10 +79,4 @@ func AdminUserUpdate(c *gin.Context) {
 		return
 	}
 	c.Redirect(http.StatusSeeOther, "/admin/users")
-}
-
-// AdminDashboard handles GET /admin
-func AdminDashboard(c *gin.Context) {
-	// 예시: /admin 접속 시 유저 리스트 페이지로 리다이렉트
-	c.Redirect(http.StatusFound, "/admin/users")
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-// GenerateJWT: 로그인 시 사용자 ID를 담은 토큰 생성
+// GenerateJWT : 로그인 시 사용자 ID를 담은 토큰 생성
 func GenerateJWT(userID uint) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
@@ -25,7 +25,7 @@ func GenerateJWT(userID uint) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-// JWTAuthMiddleware: 토큰 검증
+// JWTAuthMiddleware : 토큰 검증
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -40,7 +40,6 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			secret = "mysupersecret"
 		}
 		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-			// 서명 방법 체크
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method")
 			}
