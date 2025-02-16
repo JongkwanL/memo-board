@@ -37,14 +37,37 @@
 <body>
 <div class="login-container">
   <h2>관리자 로그인</h2>
-  {{if .Error}}
-  <p class="error">{{.Error}}</p>
-  {{end}}
-  <form method="POST" action="/admin/login">
-    <input type="text" name="admin_id" placeholder="Admin ID" required>
-    <input type="password" name="admin_pw" placeholder="Password" required>
+  <p class="error" id="errorMsg"></p>
+  <form id="loginForm">
+    <input type="text" name="admin_id" id="admin_id" placeholder="Admin ID" required>
+    <input type="password" name="admin_pw" id="admin_pw" placeholder="Password" required>
     <button type="submit">Login</button>
   </form>
 </div>
+<script>
+  document.getElementById("loginForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const adminId = document.getElementById("admin_id").value;
+    const adminPw = document.getElementById("admin_pw").value;
+
+    // AJAX 요청 (Fetch API 사용)
+    const response = await fetch("/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ admin_id: adminId, admin_pw: adminPw })
+    });
+
+    if(response.ok) {
+      const data = await response.json();
+      // JWT 토큰을 localStorage에 저장
+      localStorage.setItem("admin_jwt", data.token);
+      // 로그인 성공 시 관리자 대시보드로 이동
+      window.location.href = "/admin/dashboard";
+    } else {
+      const errData = await response.json();
+      document.getElementById("errorMsg").innerText = errData.error || "로그인 실패";
+    }
+  });
+</script>
 </body>
 </html>

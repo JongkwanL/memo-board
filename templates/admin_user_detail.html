@@ -2,13 +2,15 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>Admin - 유저 상세</title>
+  <title>Admin - 유저 관리</title>
   <style>
     body { font-family: Arial, sans-serif; }
     .container { display: flex; }
     .sidebar { width: 200px; border-right: 1px solid #ccc; padding: 10px; }
     .content { flex: 1; padding: 10px; }
-    label { display: inline-block; width: 100px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
   </style>
 </head>
 <body>
@@ -18,23 +20,62 @@
     <h3>Admin Panel</h3>
     <ul>
       <li><a href="/admin/users">유저 관리</a></li>
+      <!-- 추가 메뉴 항목 -->
     </ul>
   </div>
   <!-- 메인 컨텐츠 -->
-  <div class="content">
-    <h2>유저 상세 정보</h2>
-    <p><strong>ID:</strong> {{.User.ID}}</p>
-    <p><strong>Username:</strong> {{.User.Username}}</p>
-    <p><strong>Email:</strong> {{.User.Email}}</p>
-    <p><strong>Role:</strong> {{.User.Role}}</p>
-    <p><strong>Created At:</strong> {{.User.CreatedAt}}</p>
-    <form method="POST" action="/admin/users/{{.User.ID}}">
-      <label for="isapproved">승인:</label>
-      <input type="checkbox" name="isapproved" id="isapproved" {{if .User.IsApproved}}checked{{end}}>
-      <br><br>
-      <button type="submit">변경 저장</button>
-    </form>
+  <div class="content" id="userListContent">
+    <h2>유저 리스트</h2>
+    <p>데이터를 불러오는 중...</p>
   </div>
 </div>
+<script>
+  const token = localStorage.getItem("admin_jwt");
+  if (!token) {
+    window.location.href = "/admin/login";
+  } else {
+    fetch("/admin/users-data", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error("Unauthorized");
+              }
+              return response.json();
+            })
+            .then(data => {
+              // data.users 는 유저 배열이라 가정합니다.
+              let html = `
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Approved</th>
+                    <th>Created At</th>
+                </tr>`;
+              data.users.forEach(user => {
+                html += `
+                <tr>
+                    <td><a href="/admin/users/${user.ID}">${user.ID}</a></td>
+                    <td>${user.Username}</td>
+                    <td>${user.Email}</td>
+                    <td>${user.Role}</td>
+                    <td>${user.IsApproved}</td>
+                    <td>${user.CreatedAt}</td>
+                </tr>`;
+              });
+              html += `</table>`;
+              document.getElementById("userListContent").innerHTML = html;
+            })
+            .catch(error => {
+              console.error("Error:", error);
+              window.location.href = "/admin/login";
+            });
+  }
+</script>
 </body>
 </html>

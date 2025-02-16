@@ -34,22 +34,23 @@ func SetupRouter() *gin.Engine {
 		auth.DELETE("/:id", controllers.DeletePost)
 	}
 
-	// Admin 관련 엔드포인트를 두 그룹으로 분리합니다.
-	// adminPublic: 로그인 페이지 및 로그인 처리 (인증 없이 접근)
 	adminPublic := r.Group("/admin")
 	{
 		adminPublic.GET("/login", controllers.AdminLoginPage)
 		adminPublic.POST("/login", controllers.AdminLogin)
+		adminPublic.GET("/dashboard", controllers.AdminDashboard)
+		adminPublic.GET("/users", controllers.AdminUserList)
+
 	}
 
 	adminProtected := r.Group("/admin")
 	adminProtected.Use(middleware.JWTAuthMiddleware(), middleware.AdminJWTAuthMiddleware())
 	{
-		adminProtected.GET("/dashboard", controllers.AdminDashboard)
-		adminProtected.GET("/users", controllers.AdminUserList)
+		adminProtected.GET("/dashboard-data", controllers.AdminDashboardData)
 		adminProtected.GET("/users/:id", controllers.AdminUserDetail)
 		adminProtected.POST("/users/:id", controllers.AdminUserUpdate)
 		adminProtected.PUT("/users/:id/approve", controllers.AdminApproveUser)
+		adminProtected.GET("/users-data", controllers.AdminUsersData)
 	}
 
 	return r

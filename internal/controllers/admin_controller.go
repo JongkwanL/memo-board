@@ -7,13 +7,6 @@ import (
 	"net/http"
 )
 
-// AdminDashboard renders the admin dashboard page.
-func AdminDashboard(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin_dashboard.html", gin.H{
-		"Message": "Welcome to Admin Dashboard",
-	})
-}
-
 // AdminUserList handles GET /admin/users
 func AdminUserList(c *gin.Context) {
 	usernameFilter := c.Query("username")
@@ -79,4 +72,11 @@ func AdminUserUpdate(c *gin.Context) {
 		return
 	}
 	c.Redirect(http.StatusSeeOther, "/admin/users")
+}
+
+// AdminDashboard renders the admin dashboard page.
+func AdminDashboard(c *gin.Context) {
+	c.HTML(http.StatusOK, "admin_dashboard.html", gin.H{
+		"Message": "Welcome to Admin Dashboard",
+	})
 }

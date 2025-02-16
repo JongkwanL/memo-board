@@ -19,6 +19,7 @@
       color: #ecf0f1;
       text-decoration: none;
       font-size: 16px;
+      cursor: pointer;
     }
     .content {
       flex: 1;
@@ -32,15 +33,86 @@
   <div class="sidebar">
     <h2>Admin Panel</h2>
     <ul>
-      <li><a href="/admin/users">유저 관리</a></li>
-      <!-- 추가 메뉴 항목을 여기 추가 -->
+      <li><a id="userListLink">유저 관리</a></li>
+      <!-- 추가 메뉴 항목 -->
     </ul>
   </div>
   <!-- 메인 컨텐츠 영역 -->
-  <div class="content">
+  <div class="content" id="dashboardContent">
     <h1>관리자 대시보드</h1>
-    <p>원하는 메뉴를 좌측에서 선택하세요.</p>
+    <p>데이터를 불러오는 중...</p>
   </div>
 </div>
+
+<script>
+  const token = localStorage.getItem("admin_jwt");
+  if (!token) {
+    window.location.href = "/admin/login";
+  } else {
+    fetch("/admin/dashboard-data", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    })
+            .then(response => {
+              if (!response.ok) throw new Error("Unauthorized");
+              return response.json();
+            })
+            .then(data => {
+              document.getElementById("dashboardContent").innerHTML = `
+        <h1>${data.message}</h1>
+        <p>${data.data}</p>
+      `;
+            })
+            .catch(error => {
+              console.error("Dashboard Error:", error);
+              window.location.href = "/admin/login";
+            });
+  }
+
+  document.getElementById("userListLink").addEventListener("click", async function(e) {
+    e.preventDefault();
+    const token = localStorage.getItem("admin_jwt");
+    console.log(token);
+    if (!token) {
+      window.location.href = "/admin/login";
+      return;
+    }
+    try {
+      const response = await fetch("/admin/users-data", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      if (!response.ok) throw new Error("Unauthorized");
+      const data = await response.json();
+      console.log(data);
+      let html = `<h2>유저 리스트</h2>
+                  <table>
+                    <tr>
+                      <th>ID</th>
+                      <th>Username</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Approved</th>
+                      <th>Created At</th>
+                    </tr>`;
+      data.users.forEach(user => {
+        html += `
+          <tr>
+            <td><a href="/admin/users/${user.ID}">${user.ID}</a></td>
+            <td>${user.Username}</td>
+            <td>${user.Email}</td>
+            <td>${user.Role}</td>
+            <td>${user.IsApproved}</td>
+            <td>${user.CreatedAt}</td>
+          </tr>`;
+      });
+      html += `</table>`;
+      document.getElementById("dashboardContent").innerHTML = html;
+    } catch (error) {
+      console.error("User List Error:", error);
+      window.location.href = "/admin/login";
+    }
+  });
+</script>
 </body>
 </html>

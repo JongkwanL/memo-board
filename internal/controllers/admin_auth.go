@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"memo-board/internal/db"
+	"memo-board/internal/middleware"
 	"memo-board/internal/models"
 	"net/http"
 	"strconv"
@@ -22,28 +23,36 @@ func AdminLogin(c *gin.Context) {
 
 	var admin models.User
 	if err := db.DB.Where("username = ?", adminID).First(&admin).Error; err != nil {
-		c.HTML(http.StatusUnauthorized, "admin_login.html", gin.H{
-			"Error": "아이디 또는 비밀번호가 잘못되었습니다.",
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "아이디 또는 비밀번호가 잘못되었습니다.",
 		})
 		return
 	}
 
 	if admin.Role != models.ADMIN {
-		c.HTML(http.StatusUnauthorized, "admin_login.html", gin.H{
-			"Error": "관리자 계정이 아닙니다.",
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "관리자 계정이 아닙니다.",
 		})
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(adminPW)); err != nil {
-		c.HTML(http.StatusUnauthorized, "admin_login.html", gin.H{
-			"Error": "아이디 또는 비밀번호가 잘못되었습니다.",
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "아이디 또는 비밀번호가 잘못되었습니다.",
 		})
 		return
 	}
 
-	// 로그인 성공: 필요한 경우 세션이나 토큰을 생성한 후 관리자 대시보드로 리다이렉트합니다.
-	c.Redirect(http.StatusFound, "/admin/dashboard")
+	// 로그인 성공: JWT 토큰 생성 및 반환
+	token, err := middleware.GenerateJWT(admin.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "토큰 생성에 실패했습니다.",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
 // AdminApproveUser PUT /users/:id/approve
@@ -91,4 +100,20 @@ func AdminApproveUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User approved successfully"})
+}
+func AdminDashboardData(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Welcome to Admin Dashboard",
+		"data":    "여기에 관리자 대시보드에 필요한 데이터가 들어갑니다.",
+	})
+}
+
+// AdminUsersData handles GET /admin/users-data.
+func AdminUsersData(c *gin.Context) {
+	var users []models.User
+	if err := db.DB.Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load users"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": users})
 }
