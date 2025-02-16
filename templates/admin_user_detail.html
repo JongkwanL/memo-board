@@ -30,6 +30,7 @@
   </div>
 </div>
 <script>
+  // localStorage에서 JWT 토큰 확인
   const token = localStorage.getItem("admin_jwt");
   if (!token) {
     window.location.href = "/admin/login";
@@ -46,7 +47,7 @@
               return response.json();
             })
             .then(data => {
-              // data.users 는 유저 배열이라 가정합니다.
+              // data.users 배열에 유저 데이터가 있다고 가정
               let html = `
             <table>
                 <tr>

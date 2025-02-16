@@ -26,20 +26,21 @@
     <!-- 메인 컨텐츠 -->
     <div class="content">
         <h2>유저 리스트</h2>
-        <!-- 필터링 폼 -->
-        <form method="GET" action="/admin/users">
-            이름: <input type="text" name="username" value="{{.UsernameFilter}}">
-            Role: <input type="text" name="role" value="{{.RoleFilter}}">
+        <!-- 필터링 폼 (AJAX 요청에 파라미터를 포함) -->
+        <form id="filterForm">
+            이름: <input type="text" name="username" id="usernameFilter" value="">
+            Role: <input type="text" name="role" id="roleFilter" value="">
             Approved:
-            <select name="isapproved">
+            <select name="isapproved" id="approvedFilter">
                 <option value="">전체</option>
-                <option value="true" {{if eq .IsApprovedFilter "true"}}selected{{end}}>승인됨</option>
-                <option value="false" {{if eq .IsApprovedFilter "false"}}selected{{end}}>미승인</option>
+                <option value="true">승인됨</option>
+                <option value="false">미승인</option>
             </select>
             <button type="submit">검색</button>
         </form>
         <br>
         <table>
+            <thead>
             <tr>
                 <th>ID</th>
                 <th>Username</th>
@@ -48,26 +49,61 @@
                 <th>Approved</th>
                 <th>Created At</th>
             </tr>
-            {{range .Users}}
-            <tr>
-                <td><a href="/admin/users/{{.ID}}">{{.ID}}</a></td>
-                <td>{{.Username}}</td>
-                <td>{{.Email}}</td>
-                <td>{{.Role}}</td>
-                <td>{{.IsApproved}}</td>
-                <td>{{.CreatedAt}}</td>
-            </tr>
-            {{end}}
+            </thead>
+            <tbody id="userTableBody">
+            <!-- AJAX를 통해 데이터 삽입 -->
+            </tbody>
         </table>
     </div>
 </div>
 <script>
-    // 토큰 확인
+    // localStorage에서 JWT 토큰 확인
     const token = localStorage.getItem("admin_jwt");
     if (!token) {
         window.location.href = "/admin/login";
     }
-    // 필터 폼 전송 시에도 AJAX로 token을 포함하거나, 단순히 서버에서 session 혹은 token 검증 후 렌더링하도록 할 수 있습니다.
+
+    // 유저 데이터를 불러오는 함수 (필터링 파라미터 지원)
+    async function loadUserData(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        const url = "/admin/users-data" + (query ? "?" + query : "");
+        try {
+            const response = await fetch(url, {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            if (!response.ok) throw new Error("Unauthorized");
+            const data = await response.json();
+            const tbody = document.getElementById("userTableBody");
+            tbody.innerHTML = "";
+            data.users.forEach(user => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><a href="/admin/users/${user.ID}">${user.ID}</a></td>
+                    <td>${user.Username}</td>
+                    <td>${user.Email}</td>
+                    <td>${user.Role}</td>
+                    <td>${user.IsApproved}</td>
+                    <td>${user.CreatedAt}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error("Error loading user data:", error);
+            window.location.href = "/admin/login";
+        }
+    }
+
+    // 초기 데이터 로드
+    loadUserData();
+
+    // 필터링 폼 제출 시, AJAX 요청으로 데이터 재로드
+    document.getElementById("filterForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const username = document.getElementById("usernameFilter").value;
+        const role = document.getElementById("roleFilter").value;
+        const isapproved = document.getElementById("approvedFilter").value;
+        loadUserData({ username, role, isapproved });
+    });
 </script>
 </body>
 </html>
