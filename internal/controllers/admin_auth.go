@@ -9,6 +9,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// AdminLoginPage renders the admin login template.
+func AdminLoginPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "admin_login.html", gin.H{})
+}
+
 // AdminLogin handles POST /admin/login.
 func AdminLogin(c *gin.Context) {
 	adminID := c.PostForm("admin_id")

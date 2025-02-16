@@ -36,6 +36,7 @@ func SetupRouter() *gin.Engine {
 
 	admin := r.Group("/admin")
 	{
+		admin.GET("/login", controllers.AdminLoginPage)
 		admin.POST("/login", controllers.AdminLogin)
 
 		admin.GET("/dashboard", controllers.AdminDashboard)
