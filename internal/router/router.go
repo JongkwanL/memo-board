@@ -44,6 +44,7 @@ func SetupRouter() *gin.Engine {
 		admin.GET("/users", controllers.AdminUserList)
 		admin.GET("/users/:id", controllers.AdminUserDetail)
 		admin.POST("/users/:id", controllers.AdminUserUpdate)
+		admin.PUT("/users/:id/approve", controllers.AdminApproveUser)
 	}
 
 	return r

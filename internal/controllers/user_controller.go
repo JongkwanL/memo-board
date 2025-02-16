@@ -54,13 +54,11 @@ func UserLogin(c *gin.Context) {
 		return
 	}
 
-	// 비번 검증
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid username or password"})
 		return
 	}
 
-	// JWT 발급
 	token, err := middleware.GenerateJWT(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
@@ -68,38 +66,4 @@ func UserLogin(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
-}
-
-// AdminApproveUser PUT /users/:id/approve
-func AdminApproveUser(c *gin.Context) {
-	adminUser, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-	userData, ok := adminUser.(models.User)
-	if !ok || userData.Role != 1 {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Admin only"})
-		return
-	}
-
-	id := c.Param("id")
-	var user models.User
-	if err := db.DB.First(&user, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
-
-	if user.IsApproved {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User already approved"})
-		return
-	}
-
-	user.IsApproved = true
-	if err := db.DB.Save(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to approve user"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "User approved successfully"})
 }
